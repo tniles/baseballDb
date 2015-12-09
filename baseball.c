@@ -55,27 +55,33 @@ FILE *masfp;
 FILE *batfp;
 FILE *pitfp;
 
-main(){
-  
-  MASTER *nameHashTab[HASHSIZE];     //hashTable to player names in master struct 
-  MASTER *idHashTab[HASHSIZE];     //hashTable to player IDs in master struct 
-  MASTER *hashTemp;  //temp struct used in hash process for reaching end of a ll
-  MASTER *selected;  //temp struct used to hold a selected master record
-  MASTER *play;     //pointer to master struct 
+/**************************
+**********M*A*I*N**********
+**************************/
+int
+main(void)
+{
+  MASTER *nameHashTab[HASHSIZE];    //hashTable to player names in master struct 
+  MASTER *idHashTab[HASHSIZE];      //hashTable to player IDs in master struct 
+  MASTER *hashTemp;             //temp struct used in hash process for reaching end of a ll
+  MASTER *selected;             //temp struct used to hold a selected master record
+  MASTER *play;                 //pointer to master struct 
+  PITCH *pplay;                 //pointer to pitching struct 
+  PITCH *pit_temp;
+  BAT *bplay;                   //pointer to batting struct 
+  BAT *bat_temp;
+#ifdef USE_LINKED_LIST
   MASTER *head;
   MASTER *tail;
-  PITCH *pplay;     //pointer to pitching struct 
   PITCH *phead;
   PITCH *ptail;
-  PITCH *pit_temp;
-  BAT *bplay;     //pointer to batting struct 
   BAT *bhead;
   BAT *btail;
-  BAT *bat_temp;
+#endif
  
-  int i, hashval; //hashval for hashing, choice for input routine, i=used&abused counter
+  int i, hashval;   //hashval for hashing, choice for input routine, i=used&abused counter
   int opt = 1;
-  char *field; 
+  //char *field; 
   char filename[255];
   char temp_id[31];
   char temp_id_2[31];
@@ -86,12 +92,14 @@ main(){
   selected = (MASTER *) malloc(sizeof(MASTER));
   
   //intialize all linked list pointers
+#ifdef USE_LINKED_LIST
   head = NULL;
   tail = NULL;
   bhead = NULL;
   btail = NULL;
   phead = NULL;
   ptail = NULL;
+#endif
   bat_temp = NULL;
   pit_temp = NULL;
   hashTemp = NULL;
@@ -125,53 +133,53 @@ main(){
   printf("\nPlease wait while your database is being built... thank you for your patience...\n");
 
   /********************Read-in data for Master********************/
-  while(play = read_mcsv()){
-  //HASH HERE!!!
+  while( (play = read_mcsv()) )
+  { //HASH HERE!!!
     //by playername (last)
-    if(play->lastname){                   //if you have a playername available, then...
-      hashval = hashup(play->lastname);       //go get a hashval for the struct associated with that name
-
-      if (!nameHashTab[hashval]){                 //if the table at that value is empty, then...
-        nameHashTab[hashval] = play;             //fill it with it with the current struct
+    if(play->lastname){                 //if you have a playername available, then... go get a
+      hashval = hashup(play->lastname); //hashval for the struct associated with that name
+      if (!nameHashTab[hashval]){       //if the table at that value is empty, then...
+        nameHashTab[hashval] = play;    //fill it with it with the current struct
       }
-      else{                                            //otherwise...
-        hashTemp = nameHashTab[hashval];             //temp struct hashTemp gets whatever is in idhashTable[hashval]
-        while(hashTemp->name_hash_next){                          //if anything got assigned (should always be the case), then...
-          hashTemp = hashTemp->name_hash_next;     //re-assign it to the next spot in the list; this flag proceeds 
-        }                                            //to the end of the list.
-        hashTemp->name_hash_next = play;   //to get here means end of list has been reached, so assign the last
-      }
+      else{                                 //otherwise... temp struct hashTemp gets whatever
+        hashTemp = nameHashTab[hashval];    // is in idhashTable[hashval]
+        while(hashTemp->name_hash_next){        //if anything got assigned (should always be 
+          hashTemp = hashTemp->name_hash_next;  //the case), then...re-assign it to the next
+        }                                       //spot in the list; this flag proceeds 
+                                                //to the end of the list.
+        hashTemp->name_hash_next = play;    //to get here means end of list has been reached,
+      }                                     //so assign the last
     }
     //by playerID 
-    if(play->pid){                   //if you have a playername available, then...
-      hashval = hashup(play->pid);       //go get a hashval for the struct associated with that name
-
-      if (!idHashTab[hashval]){                 //if the table at that value is empty, then...
-        idHashTab[hashval] = play;             //fill it with it with the current struct
+    if(play->pid){                  //if you have a playername available, then... go
+      hashval = hashup(play->pid);  //get a hashval for the struct associated with that name
+      if (!idHashTab[hashval]){     //if the table at that value is empty, then...
+        idHashTab[hashval] = play;  //fill it with it with the current struct
       }
-      else{                                            //otherwise...
-        hashTemp = idHashTab[hashval];             //temp struct hashTemp gets whatever is in idhashTable[hashval]
-        while(hashTemp->pid_hash_next){                          //if anything got assigned (should always be the case), then...
-          hashTemp = hashTemp->pid_hash_next;     //re-assign it to the next spot in the list; this flag proceeds 
-        }                                            //to the end of the list.
-        hashTemp->pid_hash_next = play;   //to get here means end of list has been reached, so assign the last
-      }
+      else{                                 //otherwise... temp struct hashTemp gets whatever
+        hashTemp = idHashTab[hashval];      // is in idhashTable[hashval]
+        while(hashTemp->pid_hash_next){         //if anything got assigned (should always be
+          hashTemp = hashTemp->pid_hash_next;   //the case), then... re-assign it to the next
+        }                                       // spot in the list; this flag proceeds to the
+                                                //end of the list.
+        hashTemp->pid_hash_next = play;     //to get here means end of list has been reached,
+      }                                     //so assign the last
     } 
 #ifdef USE_LINKED_LIST
-    if(!head){         //create a typical linked list; start at head
+    if(!head){              //create a typical linked list; start at head
       tail = play;
-      head = tail;     //put head and tail on same linked list
+      head = tail;          //put head and tail on same linked list
     }
     else{
-      tail->next = play;  //self-reference to make linked list
+      tail->next = play;    //self-reference to make linked list
       tail = play; 
     }
 #endif
   }
 
   /********************Read-in data for Batting****************/
-  while(bplay = read_bcsv()){  //go get me a batting record
-
+  while( (bplay = read_bcsv()) )
+  {                             //go get me a batting record
     hashval = hashup(bplay->pid);  //hash it up
 
     i = 0;                        //'assigned or not?' count
@@ -183,20 +191,20 @@ main(){
         i++;
       }
 #endif
-      if(!(strcmp(bplay->pid, play->pid))){   //if 0, we have our matching master record
-        if(play->batter){        //if there is something in play.batter
-          bat_temp = play->batter;   //store in temp struct for batter
-          while(bat_temp->next){    //while there is another account in the list,
-            bat_temp = bat_temp->next;  //cycle through the list until you reach the end--i.e., null.
-          }
-          bat_temp->next = bplay;  //nothing is in bat_temp.next, so store bplay there
+      if(!(strcmp(bplay->pid, play->pid))){     //if 0, we have our matching master record
+        if(play->batter){                       //if there is something in play.batter
+          bat_temp = play->batter;              //store in temp struct for batter
+          while(bat_temp->next){                //while there is another account in the list,
+            bat_temp = bat_temp->next;          //cycle through the list until you reach the 
+          }                                     //end--i.e., null.
+          bat_temp->next = bplay;   //nothing is in bat_temp.next, so store bplay there
           i++;
-          break;  //break cuz done; only one id match in each play var
+          break;                    //break because done; only one id match in each play var
         }
-        else{  //this else statement is most handy for players with only 1 batting record
-          play->batter = bplay;  //careful! This will make bplay HEAD of bat ll in master record
+        else{       //this else statement is most handy for players with only 1 batting record
+          play->batter = bplay;  //careful! This will make bplay HEAD of bat ll in master rec
           i++;
-          break;  //break cuz done; only one match in each play var
+          break;    //break because done; only one match in each play var
         }
       }
       play = play->pid_hash_next;  //cycle thru the master hash linked list
@@ -209,7 +217,7 @@ main(){
     }
 
 #ifdef USE_LINKED_LIST
-    if(!bhead){         //create a typical linked list, start at head
+    if(!bhead){          //create a typical linked list, start at head
       btail = bplay;
       bhead = btail;     //put head and tail on same linked list
     }
@@ -221,33 +229,34 @@ main(){
   }
 
   /********************Read-in data for Pitching****************/
-  while(pplay = read_pcsv()){
-  
+  while( (pplay = read_pcsv()) )
+  {
     hashval = hashup(pplay->pid);
 
     i = 0;                        //'assigned or not?' count
     play = idHashTab[hashval];    //go grab the corresponding idHashTab row of master records
-    while(play){
+    while(play)
+    {
 #ifdef USE_LINKED_LIST
       if(!(strcmp(pplay->pid, play->pid))){   //if a match
         play->pitcher = pplay;
         i++;
       }
 #endif
-      if(!(strcmp(pplay->pid, play->pid))){   //if 0, we have our matching master record
-        if(play->pitcher){        //if there is something in play.pitcher
-          pit_temp = play->pitcher;   //store in temp struct for pitcher
-          while(pit_temp->next){    //while there is another account in the list,
-            pit_temp = pit_temp->next;  //cycle through the list until you reach the end--i.e., null.
-          }
-          pit_temp->next = pplay;  //nothing is in pit_temp.next, so store pplay there
+      if(!(strcmp(pplay->pid, play->pid))){     //if 0, we have our matching master record
+        if(play->pitcher){                      //if there is something in play.pitcher
+          pit_temp = play->pitcher;             //store in temp struct for pitcher
+          while(pit_temp->next){                //while there is another account in the list,
+            pit_temp = pit_temp->next;          //cycle through the list until you reach the 
+          }                                     //end--i.e., null.
+          pit_temp->next = pplay;   //nothing is in pit_temp.next, so store pplay there
           i++;
-          break;  //break cuz done; only one id match in each play var
+          break;                    //break because done; only one id match in each play var
         }
         else{  //this else statement is most handy for players with only 1 pitching record
-          play->pitcher = pplay;  //careful! This will make pplay HEAD of pit ll in master record
+          play->pitcher = pplay;  //careful! This will make pplay HEAD of pit ll in master rec
           i++;
-          break;  //break cuz done; only one match in each play var
+          break;  //break because done; only one match in each play var
         }
       }
       play = play->pid_hash_next;  //cycle thru the master hash linked list
@@ -274,19 +283,22 @@ main(){
 #ifdef USE_LINKED_LIST
   //now print Master linked list; begin at head and proceed thru *next until tail is reached
   play = head;
-  while(play){
+  while(play)
+  {
     printf("%s, %s\n", play->lastname, play->firstname);
     play = play->next;
   }
   //now print out batter linked list
   bplay = bhead;
-  while(bplay){
+  while(bplay)
+  {
     printf("%s, %s\n", bplay->pid, bplay->yid);
     bplay = bplay->next;
   }
   //now print out pitcher linked list
   pplay = phead;
-  while(pplay){
+  while(pplay)
+  {
     printf("%s, %s\n", pplay->pid, pplay->yid);
     pplay = pplay->next;
   }
@@ -313,15 +325,15 @@ main(){
         if(play->batter){           //if play has a batter record
           bat_temp = play->batter;  //give it to bat_temp struct var
           while(bat_temp){           
-            print_bat_struct(bat_temp);  //print some fields of batter data
-            bat_temp = bat_temp->next;     //now cycle through until end of ll of batting records
+            print_bat_struct(bat_temp); //print some fields of batter data
+            bat_temp = bat_temp->next;  //now cycle through until end of ll of batting records
           }
         }
-        if(play->pitcher){           //if play has a batter record
-          pit_temp = play->pitcher;  //give it to bat_temp struct var
+        if(play->pitcher){              //if play has a batter record
+          pit_temp = play->pitcher;     //give it to bat_temp struct var
           while(pit_temp){           
-            print_pit_struct(pit_temp);  //print some fields of pitcher data
-            pit_temp = pit_temp->next;     //now cycle through until end of ll of pitching records
+            print_pit_struct(pit_temp); //print some fields of pitcher data
+            pit_temp = pit_temp->next;  //now cycle through until end of ll of pitching recs
           }
         }
         play = play->pid_hash_next;
@@ -335,8 +347,9 @@ main(){
 
   /**********ENHANCED Interactive input routine for searching**************/
 
-  while(opt){  //massive loop allows for continual player lookup
-
+  while(opt)
+  {
+    //massive loop allows for continual player lookup
     printf("To Access database via PlayerID, PRESS 1\n");
     printf("To Access database via PlayerName, PRESS 2: ");
     choice = getchar();
@@ -399,7 +412,8 @@ main(){
 
        i = 0;
        play = nameHashTab[hashval];
-       while(play){
+       while(play)
+       {
          if(!(strcasecmp(temp_id, play->lastname))){   //if a match
            printf("%d.  ", (i+1));   //there's your numbered list
            print_struct(play);
@@ -419,7 +433,8 @@ main(){
          printf("\n!!!MORE THAN ONE MATCH HAS BEEN DETECTED!!!\n");
          printf("Please enter the FIRST name of the desired account: ");
          i = 0;
-         while((c = getchar()) != '\n'){   
+         while((c = getchar()) != '\n')
+         {
            temp_id_2[i++] = c;
          }
          temp_id_2[i] = '\0';
@@ -427,7 +442,8 @@ main(){
      
          i = 0;
          play = nameHashTab[hashval];
-         while(play){
+         while(play)
+         {
            if(!(strcasecmp(temp_id, play->lastname))){   //if a last name match
              if(!(strcasecmp(temp_id_2, play->firstname))){   //if a first name match
                selected = play;             //this is the desired player account
@@ -504,8 +520,8 @@ main(){
   free(hashTemp);
   free(selected);
 
+  return (0);
 }
-
 
 /****************************************************
  *FUNCTION   : whapow
@@ -513,8 +529,9 @@ main(){
  *ARGUMENTS  : MASTER *selected -- a master record struct 
  *RETURNS    : 1 for normal op, 0 for termination
  ***************************************************/
-int whapow(MASTER *selected){
-
+int
+whapow(MASTER *selected)
+{
   char choice;
   float er = 0;
   float hits = 0;
@@ -529,14 +546,18 @@ int whapow(MASTER *selected){
   temp_bat = (BAT *) malloc(sizeof(BAT));
   temp_bat->next = NULL;
 
-  printf("To see specific statistics for %s %s, please enter:\n",selected->firstname,selected->lastname);
+  printf("To see specific statistics for %s %s, please enter:\n",
+        selected->firstname,selected->lastname);
   printf("1 - Career Batting Average\n2 - Highest Single-Season Batting Average\n");
-  printf("3 - Career Earned Run Average\n4 - Lowest Single Season ERA\n0 - Quit Statistics Mode\n");
+  printf(
+    "3 - Career Earned Run Average\n4 - Lowest Single Season ERA\n0 - Quit Statistics Mode\n"
+        );
   printf("\n");
   choice = getchar();
   while(getchar() != '\n');  //get the newline out of the way (flush the line)
 
-  switch(choice){
+  switch(choice)
+  {
     case '0': 
       printf("\nExiting Statistics Mode...\n");
       return (0);
@@ -547,7 +568,7 @@ int whapow(MASTER *selected){
         while(temp_bat){
           hits = hits + temp_bat->h;
           atbats = atbats + temp_bat->ab; 
-          temp_bat = temp_bat->next;     //now cycle through until end of ll of batting records
+          temp_bat = temp_bat->next;     //now cycle through until end of ll of batting recs
         }
         printf("\nCareer Batting Average was %f\n\n", (hits/atbats));
       }
@@ -574,7 +595,7 @@ int whapow(MASTER *selected){
               //printf("\nHighest is now %f\n\n", highest);
             }
           }
-          temp_bat = temp_bat->next;     //now cycle through until end of ll of batting records
+          temp_bat = temp_bat->next;     //now cycle through until end of ll of batting recs
         }
         printf("\nHighest Single-Season Batting Average was %f\n\n", highest);
       }
@@ -588,7 +609,7 @@ int whapow(MASTER *selected){
         temp_pit = selected->pitcher;
         while(temp_pit){
           er = er + temp_pit->er;
-          temp_pit = temp_pit->next;     //now cycle through until end of ll of pitching records
+          temp_pit = temp_pit->next;     //now cycle through until end of ll of pitching recs
         }
         printf("\nCareer Earned Run Average was %f\n\n", (er/9));
       }
@@ -605,7 +626,7 @@ int whapow(MASTER *selected){
           if((temp_pit->era) < er){
             er = temp_pit->era;
           }
-          temp_pit = temp_pit->next;     //now cycle through until end of ll of batting records
+          temp_pit = temp_pit->next;     //now cycle through until end of ll of batting recs
         }
         printf("\nLowest Single-Season Earned Run Average was %f\n\n", er);
       }
@@ -627,18 +648,19 @@ int whapow(MASTER *selected){
  *ARGUMENTS  : 
  *RETURNS    : (hashval % HASHSHIZE) -- hash val for player
  ***************************************************/
-unsigned int hashup(char *s){
-
+unsigned int
+hashup(char *s)
+{
   unsigned int hashval;
   hashval = 0;
 
-//printf("In hashup\n");fflush(stdout);
+  //printf("In hashup\n");fflush(stdout);
   while(*s != '\0'){
     hashval = *s + 31 * hashval;
     s++;
   }
 
-//printf("leaving hashup\n");fflush(stdout);
+  //printf("leaving hashup\n");fflush(stdout);
   return(hashval % HASHSIZE);
 
 }
@@ -649,8 +671,9 @@ unsigned int hashup(char *s){
  *ARGUMENTS  : 
  *RETURNS    : pointer to struct 
  ***************************************************/
-MASTER * read_mcsv(){
-
+MASTER *
+read_mcsv()
+{
   char *field;
   int i = 0;
   MASTER *play; //pointer to master struct 
@@ -662,7 +685,8 @@ MASTER * read_mcsv(){
   play->batter         = NULL;
   play->pitcher        = NULL;
 
-  while(field = get_field(masfp)){
+  while( (field = get_field(masfp)) )
+  {
     //printf("%s",field);        //print for testing
     switch(i++){
       case 0: play->lid = field;   //lahmanID
@@ -754,8 +778,9 @@ MASTER * read_mcsv(){
  *ARGUMENTS  : 
  *RETURNS    : pointer to struct 
  ***************************************************/
-PITCH * read_pcsv(){
-
+PITCH *
+read_pcsv()
+{
   char *field;
   int i = 0;
   PITCH *play; //pointer struct 
@@ -763,7 +788,8 @@ PITCH * read_pcsv(){
   play = (PITCH *) malloc(sizeof(PITCH));
   play->next = NULL;
 
-  while(field = get_field(pitfp)){
+  while( (field = get_field(pitfp)) )
+  {
     //printf("%s",field);        //print for testing
     switch(i++){
       case 0: play->pid = field;   //lahmanID
@@ -840,8 +866,9 @@ PITCH * read_pcsv(){
  *ARGUMENTS  : 
  *RETURNS    : pointer to struct 
  ***************************************************/
-BAT * read_bcsv(){
-
+BAT *
+read_bcsv()
+{
   char *field;
   int i = 0;
   BAT *play; //pointer to master struct 
@@ -849,7 +876,8 @@ BAT * read_bcsv(){
   play = (BAT *) malloc(sizeof(BAT));
   play->next = NULL;
 
-  while(field = get_field(batfp)){
+  while( (field = get_field(batfp)) )
+  {
     //printf("%s",field);        //print for testing
     switch(i++){
       case 0: play->pid = field;   //playerID
@@ -907,7 +935,6 @@ BAT * read_bcsv(){
   }
   
   return(play);
-
 }
 
 /***************************************************
@@ -917,22 +944,23 @@ BAT * read_bcsv(){
  *RETURNS    : field -- pointer to a field
                0 for EOF
  **************************************************/
-
-char * get_field(FILE *file){
-
+char *
+get_field(FILE *file)
+{
   char *field;
   char c; 
   char tempfield[255]; 
   int len; 
-  int i=0, j, k;
+  int i=0, j;
 
-  while(((c=fgetc(file)) != ',') && (c != '\n') && (c != EOF)){  
+  while(((c=fgetc(file)) != ',') && (c != '\n') && (c != EOF))
+  {
     if(c == '"'){       //if data is in double quotes
       while((c=fgetc(file)) != '"'){
         tempfield[i++] = c;
       }
-      if((c=fgetc(file)) == ','){ //in this scenario, should trigger every time
-        break;            //break out with tempfield done populating
+      if((c=fgetc(file)) == ','){   //in this scenario, should trigger every time
+        break;                      //break out with tempfield done populating
       }
       else{
         printf("UNKNOWN ERROR HAS OCCURED: VERIFY DATA AND READ-IN AGREE\n");
@@ -946,18 +974,18 @@ char * get_field(FILE *file){
     if (!i) return NULL;    //occurs when EOF is in first col of stdin
   }
  
-  tempfield[i] = '\0';    //this takes care of an empty field
-  len = strlen(tempfield);       //find length for malloc purposes
+  tempfield[i] = '\0';      //this takes care of an empty field
+  len = strlen(tempfield);  //find length for malloc purposes
 
   field = (char *) malloc((len+1) * sizeof(char));  //malloc w/room for NULL
 
-  for(j=0; j <= len; j++){
+  for(j=0; j <= len; j++)
+  {
     *(field + j) = tempfield[j];       //populate pointers list
   }
 
   
   return (field);
-
 }
 
 /****************************************************
@@ -966,25 +994,26 @@ char * get_field(FILE *file){
  *ARGUMENTS  : *play -- pointer to struct
  *RETURNS    : void 
 ****************************************************/
-
-void print_struct(MASTER *play){
+void
+print_struct(MASTER *play)
+{
    
   printf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s \n\n", play->lid, play->pid, play->mgr, play->hof, play->byear, play->bmonth, play->bday, play->bcountry, play->bstate, play->bcity, play->dyear, play->dmonth, play->dday, play->dcountry, play->dstate, play->dcity, play->firstname, play->lastname, play->notename, play->gvnname, play->nickname, play->wt, play->ht, play->bats, play->throws, play->debut, play->final, play->college, play->l40id, play->l45id, play->retid, play->hid, play->bbrefid);
 
 }
 
 //print bat structs:
-void print_bat_struct(BAT *play){
-
+void
+print_bat_struct(BAT *play)
+{
   printf("%s,%s,%s,%s,%s \n\n", play->pid, play->yid, play->stint, play->tid, play->lgid);
-
 }
 
 //print pit structs:
-void print_pit_struct(PITCH *play){
-
+void
+print_pit_struct(PITCH *play)
+{
   printf("%s,%s,%s,%s,%s \n\n", play->pid, play->yid, play->stint, play->tid, play->lgid);
-
 }
 
 /****************************************************
@@ -993,11 +1022,10 @@ void print_pit_struct(PITCH *play){
  *ARGUMENTS  : *line -- pointer holding string of chars 
  *RETURNS    : void 
 ****************************************************/
-
-void print_line(char *line){
-
+void
+print_line(char *line)
+{
   printf("%s",line);
-
 }
 
 /*********************************************************/
