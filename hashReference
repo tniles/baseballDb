@@ -1,0 +1,189 @@
+/****************************************************
+ *FUNCTION   : hashup
+ *DESCRIPTION: assigns hash values 
+ *ARGUMENTS  : 
+ *RETURNS    : (hashval % HASHSHIZE) -- hash val for player
+ ***************************************************/
+unsigned int hashup(char *s){
+
+  unsigned int hashval;
+  hashval = 0;
+
+//printf("In hashup\n");fflush(stdout);
+  while(*s != '\0'){
+    hashval = *s + 31 * hashval;
+    s++;
+  }
+
+//printf("leaving hashup\n");fflush(stdout);
+  return(hashval % HASHSIZE);
+
+}
+
+/****************************************************
+ *FUNCTION   : build_name_hash
+ *DESCRIPTION: builds name hashTable
+ *ARGUMENTS  : *head -- pointer to head struct in master linked list 
+ *RETURNS    : namehashTable -- hash table for player name
+ ***************************************************/
+MASTER ** build_name_hash(MASTER *head){
+
+  MASTER **namehashTable;
+  MASTER * current; 
+  MASTER * hashCurrent;
+  int i, hashval;
+
+printf("in build_name_hash\n");fflush(stdout);
+  namehashTable = (MASTER **) malloc(sizeof(MASTER *) * HASHSIZE);      //malloc memory
+
+  for (i=0; i < HASHSIZE; i++){
+    namehashTable[i] = NULL;         //initialize all i hashtable entries to null
+  }
+
+  current = head;               //set temp struct var to head of list passed into function
+
+  while(current){                             //while you (currently) have a linked list
+    if(current->lastname){                   //if you have a playername available, then...
+      //printf("%s\n", current->lastname);fflush(stdout);
+      hashval = hashup(current->lastname);       //go get a hashval for the struct associated with that ID
+//printf("ret'd hashval=%d\n",hashval);fflush(stdout);
+
+      if (!namehashTable[hashval]){                 //if the table at that value is empty, then...
+        namehashTable[hashval] = current;             //fill it with it with the current struct
+      }
+      else{                                            //otherwise...
+        hashCurrent = namehashTable[hashval];             //temp struct hashCurrent gets whatever is in idhashTable[hashval]
+        //while(hashCurrent){                          //if anything got assigned (should always be the case), then...
+        while(1){                          //if anything got assigned (should always be the case), then...
+          if (hashCurrent->name_hash_next){             //if hashCurrent.IDHashNext has anything in it, then...
+            hashCurrent = hashCurrent->name_hash_next;     //re-assign it to the next spot in the list; this flag proceeds 
+          }                                            //to the end of the list.
+          else{                                //otherwise...
+            hashCurrent->name_hash_next = current;   //to get here means end of list has been reached, so assign the last
+            //hashCurrent = NULL;                  //IDHashNext to whatever is current, and then set hashCurrent to null
+            break;
+          }					 //to break out of the loop (could place a 'break' on this line and it would also work equivalently.
+        }	
+      }
+    }
+    current = current->next;           //proceed through the linked list passed into the build_id_hash function
+  }
+
+printf("leaving build_name_hash\n");fflush(stdout);
+  return (namehashTable);  //return the completed table (i.e. linked list has now been transformed into a hash table; return it)
+
+}
+
+/****************************************************
+ *FUNCTION   : build_id_hash
+ *DESCRIPTION: builds id hashTable
+ *ARGUMENTS  : *head -- pointer to head struct in master linked list 
+ *RETURNS    : idhashTable -- hash table for ID
+ ***************************************************/
+MASTER ** build_id_hash(MASTER *head){
+
+  MASTER **idhashTable;
+  MASTER * current; 
+  MASTER * hashCurrent;
+  int i, hashval;
+
+printf("in build_id_hash\n");fflush(stdout);
+  idhashTable = (MASTER **) malloc(sizeof(MASTER *) * HASHSIZE);      //malloc memory
+
+  for (i=0; i < HASHSIZE; i++){
+    idhashTable[i] = NULL;         //initialize all i hashtable entries to null
+  }
+
+  current = head;               //set temp struct var to head of list passed into function
+
+  while(current){                             //while you (currently) have a linked list
+    if(current->pid){                   //if you have a playerID available, then...
+      printf("%s\n", current->pid);fflush(stdout);
+      hashval = hashup(current->pid);       //go get a hashval for the struct associated with that ID
+printf("ret'd hashval=%d\n",hashval);fflush(stdout);
+
+      if (!idhashTable[hashval]){                 //if the table at that value is empty, then...
+printf("nothing in spot\n");fflush(stdout);
+        idhashTable[hashval] = current;             //fill it with it with the current struct
+printf("spot assigned\n");fflush(stdout);
+      }
+      else{                                            //otherwise...
+printf("something is there\n");fflush(stdout);
+        hashCurrent = idhashTable[hashval];             //temp struct hashCurrent gets whatever is in idhashTable[hashval]
+        while(hashCurrent){                          //if anything got assigned (should always be the case), then...
+printf("in 2nd while\n");fflush(stdout);
+          if (hashCurrent->pid_hash_next){             //if hashCurrent.IDHashNext has anything in it, then...
+printf("in if\n");fflush(stdout);
+            hashCurrent = hashCurrent->pid_hash_next;     //re-assign it to the next spot in the list; this flag proceeds 
+          }                                            //to the end of the list.
+          else{                                //otherwise...
+printf("in else\n");fflush(stdout);
+            hashCurrent->pid_hash_next = current;   //to get here means end of list has been reached, so assign the last
+            hashCurrent = NULL;                  //IDHashNext to whatever is current, and then set hashCurrent to null
+          }					 //to break out of the loop (could place a 'break' on this line and it would also work equivalently.
+        }	
+      }
+    }
+    current = current->next;           //proceed through the linked list passed into the build_id_hash function
+  }
+
+printf("leaving build_id_hash\n");fflush(stdout);
+  return (idhashTable);  //return the completed table (i.e. linked list has now been transformed into a hash table; return it)
+
+}
+
+
+
+
+
+
+
+/*************************************************************************/
+ORIGINAL:
+
+MASTER ** build_id_hash(MASTER *head){
+
+  MASTER **hashTable;
+  MASTER * current; 
+  MASTER * hashCurrent;
+  
+  int i, hashval;
+
+
+  hashTable = (MASTER **) malloc(sizeof(MASTER *) * HASHSIZE);      //malloc memory
+
+  for (i=0; i < HASHSIZE; i++){
+    hashTable[i] = NULL;         //initialize all i hashtable entries to null
+  }
+
+  current = head;               //set temp struct var to head of list passed into function
+
+  while(current){                             //while you (currently) have a linked list
+    if(current->playerID){                   //if you have a playerID available, then...
+      hashval = hash(current->playerID);       //go get a hashval for the struct associated with that ID
+     
+      if (!hashTable[hashval]){                 //if the table at that value is empty, then...
+        hashTable[hashval] = current;             //fill it with it with the current struct
+      }
+      else{                                            //otherwise...
+        hashCurrent = hashTable[hashval];             //temp struct hashCurrent gets whatever is in hashTable[hashval]
+        while(hashCurrent){                          //if anything got assigned (should always be the case), then...
+          if (hashCurrent->IDHashNext){             //if hashCurrent.IDHashNext has anything in it, then...
+            hashCurrent = hashCurrent->IDHashNext;     //re-assign it to the next spot in the list; this flag proceeds 
+          }                                            //to the end of the list.
+          else{                                //otherwise...
+            hashCurrent->IDHashNext = current;   //to get here means end of list has been reached, so assign the last
+            hashCurrent = NULL;                  //IDHashNext to whatever is current, and then set hashCurrent to null
+          }					 //to break out of the loop (could place a "break" on this line and it would
+        }					 //also work equivalently.
+      }
+    }
+    current = current->next;           //proceed through the linked list passed into the build_id_hash function
+  }
+
+
+  return (hashTable);  //return the completed table (i.e. linked list has now been transformed into a hash table; return it)
+
+}
+
+
