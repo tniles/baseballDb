@@ -35,7 +35,11 @@
 #define HASHSIZE 101
 
 #if 0
+/* for reference purposes only (the implemented hash was the key deliverable) */
 #define USE_LINKED_LIST 1
+#endif
+#if 0
+#define DBG_LINKED_LIST 1
 #endif
 
 void print_line(char *line);
@@ -280,7 +284,7 @@ main(void)
 #endif
   }
 
-#ifdef USE_LINKED_LIST
+#if defined(USE_LINKED_LIST) && defined(DBG_LINKED_LIST)
   //now print Master linked list; begin at head and proceed thru *next until tail is reached
   play = head;
   while(play)
