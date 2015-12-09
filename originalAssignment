@@ -1,0 +1,49 @@
+Final Project
+Linked List Data Structures
+
+Do you LOVE Baseball? I hope so. If you go to “The Baseball Archive” at
+http://www.baseball1.com/, you can download “the most complete set of baseball data available
+anywhere, with full statistics from 1871-2006.” Download the comma separated list (CSV) at
+http://baseball1.info/statistics/lahman53_csv.zip. (This will also be available on the class
+website if you are logged in).
+
+This will be a multi-week assignment. The project will not be due until Friday, December 8th.
+However, I will describe the projects in a series of weekly “milestones.”
+The first part of the assignment is create data structures for the master database, the batter
+database, and the pitcher database. You should be able to read in each file in its entirety
+(one at a time) into individual linked list data structures. Each database should then be
+walked and you should print the names of every player in the list. This will ensure that you
+have properly created data structure for each type of file and can walk a linked list of these
+structures. Finally, you should attempt to make a simple input routine that allows you to
+specify either the player ID or a player name. With this information, you should be able to
+walk the master list and print out the record for any player that matches. 
+
+The second part of the assignment is to create 2 hash tables based on the master database. One
+table is hashed on the player name, the other table is hashed on the player ID. Keep the
+linked list in tact, just create these two tables. This will allow you to rapidly access the
+master data structure either by player name or by player ID using the input routine you have
+already developed. Enhance the input routine so that, in the case of the player name, if
+multiple matches occur, you print out a numbered list of matching players to the screen, and
+allow the user to pick the specific player of interest. You should hope to have this done by
+Tuesday, November 29th.
+
+The third part of the assignment is to input the batter and pitcher files and attach them to
+the master records. However, rather than simply reading the batting list into another linked
+list, add a linked list to each master structure called “Batter.” Then read in the entire
+batting list, creating a new structure for each record in the list. Find the proper Master
+struct using the id hash, and then add the new batting recode to the Batter linked list in the
+master struct. This will attach all of the Batter information for each individual player to
+their Master record. Do the same for the Pitcher struct.  At this point, all we need is a
+little output. Using your input routine from the prior part, allow the user to select a range
+of possible “queries” – let’s do the following:
+
+1) Career Batting Average (Hits / At Bats)
+2) Highest Single Season Batting Average
+or for pitchers
+3) Career Earned Run Average (ERA = Earned Runs/9 innings pitched)
+4) Lowest Single Season ERA
+
+If you get ambitious, throw in hits, RBI’s, Home Runs, walks and steals for the batters and
+strikeouts, wins, and saves for the pitchers. If you get ridiculously ambitious, you might
+create the ability to print out who has the record for career/single season in the above
+categories. Or not.
