@@ -34,6 +34,10 @@
 
 #define HASHSIZE 101
 
+#if 0
+#define USE_LINKED_LIST 1
+#endif
+
 void print_line(char *line);
 char * get_field();
 void print_struct(MASTER *play);
@@ -153,6 +157,16 @@ main(){
         hashTemp->pid_hash_next = play;   //to get here means end of list has been reached, so assign the last
       }	
     } 
+#ifdef USE_LINKED_LIST
+    if(!head){         //create a typical linked list; start at head
+      tail = play;
+      head = tail;     //put head and tail on same linked list
+    }
+    else{
+      tail->next = play;  //self-reference to make linked list
+      tail = play; 
+    }
+#endif
   }
 
   /********************Read-in data for Batting****************/
@@ -163,6 +177,12 @@ main(){
     i = 0;                        //'assigned or not?' count
     play = idHashTab[hashval];    //go grab the corresponding idHashTab row of master records
     while(play){
+#ifdef USE_LINKED_LIST
+      if(!(strcmp(bplay->pid, play->pid))){   //if a match
+        play->batter = bplay;
+        i++;
+      }
+#endif
       if(!(strcmp(bplay->pid, play->pid))){   //if 0, we have our matching master record
         if(play->batter){        //if there is something in play.batter
           bat_temp = play->batter;   //store in temp struct for batter
@@ -188,6 +208,16 @@ main(){
       exit(0);
     }
 
+#ifdef USE_LINKED_LIST
+    if(!bhead){         //create a typical linked list, start at head
+      btail = bplay;
+      bhead = btail;     //put head and tail on same linked list
+    }
+    else{
+      btail->next = bplay;  //self-reference to make linked list
+      btail = bplay; 
+    }
+#endif
   }
 
   /********************Read-in data for Pitching****************/
@@ -198,6 +228,12 @@ main(){
     i = 0;                        //'assigned or not?' count
     play = idHashTab[hashval];    //go grab the corresponding idHashTab row of master records
     while(play){
+#ifdef USE_LINKED_LIST
+      if(!(strcmp(pplay->pid, play->pid))){   //if a match
+        play->pitcher = pplay;
+        i++;
+      }
+#endif
       if(!(strcmp(pplay->pid, play->pid))){   //if 0, we have our matching master record
         if(play->pitcher){        //if there is something in play.pitcher
           pit_temp = play->pitcher;   //store in temp struct for pitcher
@@ -222,7 +258,80 @@ main(){
       printf("Alien pitching record is ID: %s\n", pplay->pid);
       exit(0);
     }
+
+#ifdef USE_LINKED_LIST
+    if(!phead){         //create the linked list, start at head
+      ptail = pplay;
+      phead = ptail;     //put head and tail on same linked list
+    }
+    else{
+      ptail->next = pplay;  //self-reference to make linked list
+      ptail = pplay; 
+    }
+#endif
   }
+
+#ifdef USE_LINKED_LIST
+  //now print Master linked list; begin at head and proceed thru *next until tail is reached
+  play = head;
+  while(play){
+    printf("%s, %s\n", play->lastname, play->firstname);
+    play = play->next;
+  }
+  //now print out batter linked list
+  bplay = bhead;
+  while(bplay){
+    printf("%s, %s\n", bplay->pid, bplay->yid);
+    bplay = bplay->next;
+  }
+  //now print out pitcher linked list
+  pplay = phead;
+  while(pplay){
+    printf("%s, %s\n", pplay->pid, pplay->yid);
+    pplay = pplay->next;
+  }
+#endif
+
+#if 0
+  /***************Now print hash table*************************/
+  printf("ready for printing nameHashTab\n\n");fflush(stdout);
+    //nameHashTab
+    for(i=0; i < HASHSIZE; i++){
+      play = nameHashTab[i];
+      while(play){
+        print_struct(play);
+        play = play->name_hash_next;
+      }
+      printf("ITERATION: %d\n\n",i);fflush(stdout);
+    }
+    //idHashTab
+    printf("ready for printing idHashTab\n\n");fflush(stdout);
+    for(i=0; i < HASHSIZE; i++){
+      play = idHashTab[i];
+      while(play){
+        print_struct(play);     //prints master struct of player data
+        if(play->batter){           //if play has a batter record
+          bat_temp = play->batter;  //give it to bat_temp struct var
+          while(bat_temp){           
+            print_bat_struct(bat_temp);  //print some fields of batter data
+            bat_temp = bat_temp->next;     //now cycle through until end of ll of batting records
+          }
+        }
+        if(play->pitcher){           //if play has a batter record
+          pit_temp = play->pitcher;  //give it to bat_temp struct var
+          while(pit_temp){           
+            print_pit_struct(pit_temp);  //print some fields of pitcher data
+            pit_temp = pit_temp->next;     //now cycle through until end of ll of pitching records
+          }
+        }
+        play = play->pid_hash_next;
+      }
+      printf("ITERATION: %d\n\n",i);fflush(stdout);
+    }
+#endif
+
+//exit(0); //temp exit for testing play->batter->next syntax
+
 
   /**********ENHANCED Interactive input routine for searching**************/
 
@@ -261,6 +370,17 @@ main(){
          printf("\nNo match found... please check your entry and retry.\n");
          exit(0);
        }
+#ifdef USE_LINKED_LIST
+       //FOR USING A TYPICAL LINKED LIST:
+       play = head;
+       while(play){    //walk linked list
+         if(!(strcasecmp(temp_id, play->pid))){   //if a match
+           print_struct(play);             //print the stats for the match
+         }
+         play = play->next;
+       }
+       printf("\nAll Matches returned.\n");
+#endif
     }
 
     else if(choice == '2'){
@@ -350,6 +470,18 @@ main(){
            exit(0);
          }
        }
+
+#ifdef USE_LINKED_LIST
+       //FOR USING A TYPICAL LINKED LIST:
+       play = head;
+       while(play){    //walk linked list
+         if(!(strcasecmp(temp_id, play->lastname))){   //if a match
+           print_struct(play);             //print the stats for the match
+         }
+         play = play->next;
+       }
+       printf("\nAll Matches returned.\n");
+#endif
     }
     else{
       printf("ERROR: Restart and enter only a 1 or 2.\n");
